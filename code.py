@@ -195,6 +195,8 @@ while True:
             if (locked):
                 displayio.release_displays()
                 spi.deinit()
+                encoder = None
+                seesaw = None
                 i2c.deinit()
             save_state()
             time.sleep(1)
