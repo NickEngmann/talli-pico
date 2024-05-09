@@ -24,30 +24,25 @@ class BatchDisplayUpdate:
         self.the_display.refresh()
         self.the_display.auto_refresh = self.auto_refresh
 
-
 def save_state():
     if locked:
-        print("Locking in Memory")
+        print("[DEBUG]Locking in Memory...")
         microcontroller.nvm[1] = 1
     else:
-        print("Unlocking in Memory")
+        print("[DEBUG]Unlocking in Memory...")
         microcontroller.nvm[1] = 0
-
 
 def load_state():
     return bool(microcontroller.nvm[1])
 
-
 def save_number(number):
     microcontroller.nvm[0:4] = number.to_bytes(4, 'little')
-
 
 def load_number():
     try:
         return int.from_bytes(microcontroller.nvm[0:4], 'little')
     except ValueError:
         return 0
-
 
 def update_display():
     global last_displayed_number
@@ -58,8 +53,7 @@ def update_display():
             text_area.text = f"{number:03}"
             last_displayed_number = number
         display.root_group = text_group
-        print("Display updated. Number:", number, "Locked:", locked)
-
+        print("[DEBUG]Display updated. Number:", number, "Locked:", locked)
 
 # Configuration for CS pin (for the OLED display):
 CS_PIN = board.D7
@@ -68,7 +62,7 @@ BUTTON_PIN = board.D3
 ENCODER_BUTTON_PIN = 24  # Pin number for the button on the rotary encoder
 
 time.sleep(1.5)
-print("Booting...")
+print("[DEBUG]Booting...")
 # Initialize I2C
 i2c = board.I2C()
 # Initialize the Seesaw (I2C rotary encoder)
@@ -77,8 +71,8 @@ encoder = rotaryio.IncrementalEncoder(seesaw)
 seesaw.pin_mode(24, seesaw.INPUT_PULLUP)
 encoder_button = DIO.DigitalIO(seesaw, 24)
 locked = load_state()
-print("IS DEVICE LOCKED:" + str(locked))
-if (not locked):
+print("[DEBUG]IS DEVICE LOCKED:" + str(locked))
+if( not locked):
     # Variable to keep track of the number
     number = load_number()
     # Set up GPIO button
@@ -92,8 +86,7 @@ if (not locked):
     display = framebufferio.FramebufferDisplay(framebuffer)
 
     # Load the font
-    # Replace with the path to your font file
-    font = bitmap_font.load_font("/GothamBlack-54.bdf")
+    font = bitmap_font.load_font("/GothamBlack-54.bdf")  # Replace with the path to your font file
 
     # Create a Group for the text
     text_group = displayio.Group()
@@ -101,8 +94,7 @@ if (not locked):
     # Create a text label
     text_area = adafruit_display_text.label.Label(font, color=0xFFFFFF)
     text_area.anchor_point = (0.5, 0.5)  # Center the text
-    # Position the text in the center
-    text_area.anchored_position = (display.width // 2, display.height // 2)
+    text_area.anchored_position = (display.width // 2, display.height // 2)  # Position the text in the center
     text_group.append(text_area)
     # Display the initial number
     update_display()
@@ -123,7 +115,7 @@ while True:
             save_number(number)
             update_display()
             last_position = position
-            print("Encoder position changed. Number:", number)
+            print("[DEBUG]Encoder position changed. Number:", number)
 
         # Read button state
         current_button_state = button.value
@@ -132,7 +124,7 @@ while True:
                 number += 1
                 save_number(number)
                 update_display()
-                print("Button pressed. Number:", number)
+                print("[DEBUG]Button pressed. Number:", number)
             last_button_state = current_button_state
             press_time = time.monotonic()
             while not button.value:
@@ -141,7 +133,7 @@ while True:
                     save_number(number)
                     locked = False
                     update_display()
-                    print("Button held for 3 seconds. Counter reset.")
+                    print("[INFO]Button held for 3 seconds. Counter reset.")
                     time.sleep(2)
                     break
                 time.sleep(0.1)  # Debounce delay
@@ -149,7 +141,7 @@ while True:
         if not encoder_button.value:
             locked = False
             save_state()
-            print("Unlocked")
+            print("[INFO]Unlocked")
             # Variable to keep track of the number
             number = load_number()
             # Set up GPIO button
@@ -159,13 +151,11 @@ while True:
             # SPI and display initialization
             displayio.release_displays()
             spi = board.SPI()
-            framebuffer = sharpdisplay.SharpMemoryFramebuffer(
-                spi, CS_PIN, 160, 68)
+            framebuffer = sharpdisplay.SharpMemoryFramebuffer(spi, CS_PIN, 160, 68)
             display = framebufferio.FramebufferDisplay(framebuffer)
 
             # Load the font
-            # Replace with the path to your font file
-            font = bitmap_font.load_font("/GothamBlack-54.bdf")
+            font = bitmap_font.load_font("/GothamBlack-54.bdf")  # Replace with the path to your font file
 
             # Create a Group for the text
             text_group = displayio.Group()
@@ -173,16 +163,18 @@ while True:
             # Create a text label
             text_area = adafruit_display_text.label.Label(font, color=0xFFFFFF)
             text_area.anchor_point = (0.5, 0.5)  # Center the text
-            # Position the text in the center
-            text_area.anchored_position = (
-                display.width // 2, display.height // 2)
+            text_area.anchored_position = (display.width // 2, display.height // 2)  # Position the text in the center
             text_group.append(text_area)
             # Display the initial number
             update_display()
         else:
+            encoder_button = None
+            encoder = None
+            seesaw = None
+            i2c.deinit()
+            time.sleep(1)
             sleep_time = 6
-            time_alarm = alarm.time.TimeAlarm(
-                monotonic_time=time.monotonic() + sleep_time)
+            time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + sleep_time)
             alarm.exit_and_deep_sleep_until_alarms(time_alarm)
 
     # Check for rotary encoder button press
@@ -191,13 +183,10 @@ while True:
         if last_encoder_button_state:
             locked = not locked
             update_display()
-            print("Encoder button pressed. Locked:", locked)
-            if (locked):
+            print("[DEBUG]Encoder button pressed. Locked:", locked)
+            if(locked):
                 displayio.release_displays()
                 spi.deinit()
-                encoder = None
-                seesaw = None
-                i2c.deinit()
             save_state()
             time.sleep(1)
         last_encoder_button_state = current_encoder_button_state
