@@ -180,12 +180,14 @@ while True:
             # Display the initial number
             update_display()
         else:
-            encoder_button = None
             encoder = None
+            encoder_button.deinit()
+            seesaw.pin_mode(24, seesaw.INPUT)
             seesaw = None
-            i2c.deinit()
             time.sleep(1)
-            sleep_time = 6
+            i2c.deinit()
+            time.sleep(4)
+            sleep_time = 5
             time_alarm = alarm.time.TimeAlarm(
                 monotonic_time=time.monotonic() + sleep_time)
             alarm.exit_and_deep_sleep_until_alarms(time_alarm)
