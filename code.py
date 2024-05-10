@@ -186,7 +186,7 @@ while True:
             seesaw = None
             time.sleep(1)
             i2c.deinit()
-            time.sleep(4)
+            time.sleep(1)
             sleep_time = 5
             time_alarm = alarm.time.TimeAlarm(
                 monotonic_time=time.monotonic() + sleep_time)
