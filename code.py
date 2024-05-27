@@ -1,6 +1,7 @@
 import board
 import digitalio
 from adafruit_seesaw import seesaw, rotaryio
+from adafruit_seesaw import neopixel as rotary_neopixel
 from adafruit_seesaw import digitalio as DIO
 import adafruit_display_text.label
 from adafruit_bitmap_font import bitmap_font
@@ -10,6 +11,7 @@ import time
 import displayio
 import alarm
 import microcontroller
+import neopixel
 
 
 class BatchDisplayUpdate:
@@ -61,13 +63,52 @@ def update_display():
         print("[DEBUG]Display updated. Number:", number, "Locked:", locked)
 
 
+def blink_neopixels():
+    # Initialize onboard WS2812 LED
+    onboard_pixel = neopixel.NeoPixel(board.NEOPIXEL, 1)
+    # Initialize rotary encoder NEOPIXEL
+    encoder_pixel = rotary_neopixel.NeoPixel(seesaw, 6, 1)
+    encoder_pixel.brightness = 1
+    onboard_pixel.fill((0, 255, 0))  # Green color (R, G, B)
+    encoder_pixel.fill((0, 255, 0))  # Green color (R, G, B)
+    onboard_pixel.show()
+    encoder_pixel.show()
+    time.sleep(0.25)
+    onboard_pixel.fill((0, 0, 0))
+    encoder_pixel.fill((0, 0, 0))
+    onboard_pixel.show()
+    encoder_pixel.show()
+    onboard_pixel.deinit()
+    encoder_pixel.deinit()
+
+
+def rotary_neopixels():
+    # Initialize onboard WS2812 LED
+    onboard_pixel = neopixel.NeoPixel(board.NEOPIXEL, 1)
+    # Initialize rotary encoder NEOPIXEL
+    encoder_pixel = rotary_neopixel.NeoPixel(seesaw, 6, 1)
+    onboard_pixel.brightness = 0.5
+    encoder_pixel.brightness = 0.5
+    onboard_pixel.fill((0, 255, 0))  # Green color (R, G, B)
+    encoder_pixel.fill((0, 255, 0))  # Green color (R, G, B)
+    onboard_pixel.show()
+    encoder_pixel.show()
+    time.sleep(0.15)
+    onboard_pixel.fill((0, 0, 0))
+    encoder_pixel.fill((0, 0, 0))
+    onboard_pixel.show()
+    encoder_pixel.show()
+    onboard_pixel.deinit()
+    encoder_pixel.deinit()
+
+
 # Configuration for CS pin (for the OLED display):
 CS_PIN = board.D7
 # Configuring button and encoder
 BUTTON_PIN = board.D3
 ENCODER_BUTTON_PIN = 24  # Pin number for the button on the rotary encoder
 
-time.sleep(1.5)
+time.sleep(2)
 print("[DEBUG]Booting...")
 # Initialize I2C
 i2c = board.I2C()
@@ -122,6 +163,7 @@ while True:
             number = max(0, number)  # Prevent negative numbers
             save_number(number)
             update_display()
+            rotary_neopixels()
             last_position = position
             print("[DEBUG]Encoder position changed. Number:", number)
 
@@ -133,6 +175,7 @@ while True:
                 save_number(number)
                 update_display()
                 print("[DEBUG]Button pressed. Number:", number)
+                blink_neopixels()  # Blink NeoPixels when the button is pressed
             last_button_state = current_button_state
             press_time = time.monotonic()
             while not button.value:
@@ -187,7 +230,7 @@ while True:
             time.sleep(1)
             i2c.deinit()
             time.sleep(1)
-            sleep_time = 5
+            sleep_time = 15
             time_alarm = alarm.time.TimeAlarm(
                 monotonic_time=time.monotonic() + sleep_time)
             alarm.exit_and_deep_sleep_until_alarms(time_alarm)
