@@ -54,6 +54,7 @@ def load_number():
     except ValueError:
         return 0
 
+
 def update_display():
     global last_displayed_number
     with BatchDisplayUpdate(display):
@@ -62,9 +63,11 @@ def update_display():
         else:
             if number < 1000:
                 text_area.text = f"{number:03}"  # Format with 2 leading zeros
+                text_area.font = bitmap_font.load_font("/GothamBlack-54.bdf")
             else:
                 text_area.text = f"{number:04}"  # Format with 3 leading zeros
-                text_area.scale = (0.8, 0.8)  # Decrease font size by 20%
+                text_area.font = bitmap_font.load_font(
+                    "/GothamBlack-48.bdf")  # New font for numbers over 1000
             last_displayed_number = number
         display.root_group = text_group
         print("[DEBUG]Display updated. Number:", number, "Locked:", locked)
@@ -141,6 +144,7 @@ if (not locked):
 
     # Load the font
     # Replace with the path to your font file
+
     font = bitmap_font.load_font("/GothamBlack-54.bdf")
 
     # Create a Group for the text
