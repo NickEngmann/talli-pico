@@ -30,26 +30,29 @@ class BatchDisplayUpdate:
 def save_state():
     if locked:
         print("[DEBUG]Locking in Memory...")
-        microcontroller.nvm[1] = 1
+        microcontroller.nvm[3] = 1
     else:
         print("[DEBUG]Unlocking in Memory...")
-        microcontroller.nvm[1] = 0
+        microcontroller.nvm[3] = 0
 
 
 def load_state():
-    return bool(microcontroller.nvm[1])
+    return bool(microcontroller.nvm[3])
 
 
 def save_number(number):
-    microcontroller.nvm[0:4] = number.to_bytes(4, 'little')
+    microcontroller.nvm[0:2] = number.to_bytes(2, 'little')
 
 
 def load_number():
     try:
-        return int.from_bytes(microcontroller.nvm[0:4], 'little')
+        number = int.from_bytes(microcontroller.nvm[0:2], 'little')
+        print("[DEBUG]Number loaded from memory:", number)
+        if number > 9999:
+            number = 0  # Reset if the number is out of expected range
+        return number
     except ValueError:
         return 0
-
 
 def update_display():
     global last_displayed_number
@@ -57,7 +60,11 @@ def update_display():
         if locked:
             text_area.text = ""
         else:
-            text_area.text = f"{number:03}"
+            if number < 1000:
+                text_area.text = f"{number:03}"  # Format with 2 leading zeros
+            else:
+                text_area.text = f"{number:04}"  # Format with 3 leading zeros
+                text_area.scale = (0.8, 0.8)  # Decrease font size by 20%
             last_displayed_number = number
         display.root_group = text_group
         print("[DEBUG]Display updated. Number:", number, "Locked:", locked)
@@ -69,8 +76,8 @@ def blink_neopixels():
     # Initialize rotary encoder NEOPIXEL
     encoder_pixel = rotary_neopixel.NeoPixel(seesaw, 6, 1)
     encoder_pixel.brightness = 1
-    onboard_pixel.fill((0, 255, 0))  # Green color (R, G, B)
-    encoder_pixel.fill((0, 255, 0))  # Green color (R, G, B)
+    onboard_pixel.fill((0, 255, 0))
+    encoder_pixel.fill((0, 255, 0))
     onboard_pixel.show()
     encoder_pixel.show()
     time.sleep(0.25)
@@ -89,8 +96,8 @@ def rotary_neopixels():
     encoder_pixel = rotary_neopixel.NeoPixel(seesaw, 6, 1)
     onboard_pixel.brightness = 0.5
     encoder_pixel.brightness = 0.5
-    onboard_pixel.fill((0, 255, 0))  # Green color (R, G, B)
-    encoder_pixel.fill((0, 255, 0))  # Green color (R, G, B)
+    onboard_pixel.fill((0, 255, 0))
+    encoder_pixel.fill((0, 255, 0))
     onboard_pixel.show()
     encoder_pixel.show()
     time.sleep(0.15)
@@ -161,6 +168,8 @@ while True:
             diff = last_position - position  # Reverse the direction
             number += diff
             number = max(0, number)  # Prevent negative numbers
+            if number > 9999:
+                number = 0
             save_number(number)
             update_display()
             rotary_neopixels()
@@ -172,6 +181,8 @@ while True:
         if current_button_state != last_button_state:
             if not current_button_state:
                 number += 1
+                if number > 9999:
+                    number = 0
                 save_number(number)
                 update_display()
                 print("[DEBUG]Button pressed. Number:", number)
