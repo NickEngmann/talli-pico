@@ -54,7 +54,6 @@ def load_number():
     except ValueError:
         return 0
 
-
 def update_display():
     global last_displayed_number
     with BatchDisplayUpdate(display):
@@ -66,8 +65,7 @@ def update_display():
                 text_area.font = bitmap_font.load_font("/GothamBlack-54.bdf")
             else:
                 text_area.text = f"{number:04}"  # Format with 3 leading zeros
-                text_area.font = bitmap_font.load_font(
-                    "/GothamBlack-48.bdf")  # New font for numbers over 1000
+                text_area.font = bitmap_font.load_font("/GothamBlack-48.bdf")  # New font for numbers over 1000
             last_displayed_number = number
         display.root_group = text_group
         print("[DEBUG]Display updated. Number:", number, "Locked:", locked)
@@ -174,9 +172,9 @@ while True:
             number = max(0, number)  # Prevent negative numbers
             if number > 9999:
                 number = 0
-            save_number(number)
             update_display()
             rotary_neopixels()
+            save_number(number)
             last_position = position
             print("[DEBUG]Encoder position changed. Number:", number)
 
@@ -187,20 +185,20 @@ while True:
                 number += 1
                 if number > 9999:
                     number = 0
-                save_number(number)
                 update_display()
                 print("[DEBUG]Button pressed. Number:", number)
-                blink_neopixels()  # Blink NeoPixels when the button is pressed
+                blink_neopixels()  # Blink NeoPixels when the button is 
+                save_number(number)
             last_button_state = current_button_state
             press_time = time.monotonic()
             while not button.value:
                 if time.monotonic() - press_time > 3:
                     number = 0
-                    save_number(number)
                     locked = False
                     update_display()
+                    save_number(number)
                     print("[INFO]Button held for 3 seconds. Counter reset.")
-                    time.sleep(2)
+                    time.sleep(1.5)
                     break
                 time.sleep(0.1)  # Debounce delay
     else:
