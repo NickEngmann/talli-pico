@@ -243,7 +243,7 @@ while True:
             time.sleep(1)
             i2c.deinit()
             time.sleep(1)
-            sleep_time = 15
+            sleep_time = 65
             time_alarm = alarm.time.TimeAlarm(
                 monotonic_time=time.monotonic() + sleep_time)
             alarm.exit_and_deep_sleep_until_alarms(time_alarm)
